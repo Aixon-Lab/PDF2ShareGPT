@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to ShareGPT Converter v0.9.1</title> <!-- Version bump -->
+    <style>
+        /* --- Google Font Import --- */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap'); /* Keep Poppins for body */
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            padding: 20px 10px;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            color: #e0e0e0;
+            min-height: calc(100vh - 20px);
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00bcd4;
+            font-weight: 600;
+            margin-bottom: 35px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 5px rgba(0, 188, 212, 0.5);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 400;
+            color: #bdbdbd;
+            font-size: 0.9em;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+            font-size: 0.95em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        select {
+             appearance: none;
+             -webkit-appearance: none;
+             -moz-appearance: none;
+             background-image: url('data:image/svg+xml;utf8,<svg fill="%23bdbdbd" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+             background-repeat: no-repeat;
+             background-position: right 10px center;
+             background-size: 18px;
+             padding-right: 35px;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder,
+        input[type="number"]::placeholder,
+        textarea::placeholder {
+            color: #757575;
+            opacity: 1;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #00bcd4;
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.3);
+        }
+
+        textarea {
+            height: 250px;
+            resize: vertical;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        button {
+            background-color: #00bcd4;
+            color: #111;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            vertical-align: bottom;
+             font-family: 'Poppins', sans-serif;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #0097a7;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background-color: #555;
+            color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        select:disabled {
+             background-color: #555;
+             color: #999;
+             cursor: not-allowed;
+             opacity: 0.7;
+         }
+
+
+        #stopButton {
+            background-color: #e53935;
+            color: #fff;
+        }
+
+        #stopButton:hover:not(:disabled) {
+            background-color: #c62828;
+        }
+
+        #downloadButton {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        #downloadButton:hover:not(:disabled) {
+            background-color: #388e3c;
+        }
+
+        .select-pdf-button-container {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .select-pdf-button-container button {
+            background-color: transparent;
+            border: 1px solid #00bcd4;
+            color: #00bcd4;
+            box-shadow: none;
+            margin-right: 0;
+            display: inline-block;
+             padding: 10px 20px;
+        }
+
+        .select-pdf-button-container button:hover {
+            background-color: rgba(0, 188, 212, 0.1);
+            color: #26c6da;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #dropZone {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            color: #bdbdbd;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        #dropZone.dragover,
+        #dropZone:hover {
+            border-color: #00bcd4;
+            background-color: rgba(0, 188, 212, 0.1);
+            color: #e0e0e0;
+        }
+
+        #fileList {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        #fileList li {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ccc;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        #fileList li:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #fileList li button {
+            margin-left: 10px;
+            padding: 2px 6px;
+            font-size: 0.8em;
+            margin-bottom: 0;
+            background-color: rgba(229, 57, 53, 0.6);
+            color: #fff;
+            font-weight: 400;
+            box-shadow: none;
+            border-radius: 5px;
+        }
+
+        #fileList li button:hover {
+            background-color: rgba(229, 57, 53, 0.9);
+            transform: scale(1.05);
+            box-shadow: none;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-weight: 400;
+            color: #bdbdbd;
+            min-height: 1.6em;
+            font-size: 0.95em;
+        }
+
+        .hidden-file-input {
+            display: none;
+        }
+
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-row > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-row label {
+            margin-bottom: 5px;
+        }
+
+        .button-group {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .button-group button {
+            margin-bottom: 10px;
+             margin-right: 10px;
+        }
+        .button-group button:last-child {
+            margin-right: 0;
+        }
+    </style>
+    <!-- PDF.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>PDF to ShareGPT Converter v0.9.1</h1>
+
+        <!-- MODIFIED: Added onclick handler and updated text -->
+        <div id="dropZone" onclick="document.getElementById('fileInput').click();">
+            Drag & Drop up to 5 PDF files here, or click here to select.
+        </div>
+        <input type="file" id="fileInput" class="hidden-file-input" multiple accept=".pdf">
+
+        <!-- ORIGINAL "Select PDFs" button remains functional -->
+        <div class="select-pdf-button-container">
+             <button type="button" onclick="document.getElementById('fileInput').click();">
+                 Select PDFs
+             </button>
+        </div>
+
+        <div class="input-row">
+            <div>
+                <label for="apiKey">OpenRouter API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your OpenRouter API Key">
+            </div>
+            <div>
+                <label for="modelSelect">Select Model:</label>
+                <select id="modelSelect">
+                    <option value="deepseek/deepseek-chat-v3-0324" selected>DeepSeek V3 0324</option>
+                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                    <option value="openai/gpt-4o">OpenAI: GPT-4o</option>
+                    <option value="minimax/minimax-01">MiniMax-01</option>
+                    <option value="anthropic/claude-3.7-sonnet">Claude 3.7 Sonnet</option>
+                    <option value="openai/gpt-4o-mini">GPT-4o-mini</option>
+                    <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+                    <option value="deepseek/deepseek-chat">DeepSeek V3</option>
+                </select>
+            </div>
+             <div>
+                <label for="targetPairsInput">Target Pairs (0 for no limit):</label>
+                <input type="number" id="targetPairsInput" min="0" value="1000" placeholder="e.g., 1000">
+            </div>
+        </div>
+
+        <ul id="fileList"></ul>
+
+        <div class="button-group">
+            <button id="startButton">Start Generation</button>
+            <button id="stopButton" disabled>Stop</button>
+            <button id="downloadButton" disabled>Download JSON</button>
+        </div>
+
+        <div>
+            <label for="output">Generated ShareGPT Data (JSON):</label>
+            <textarea id="output" readonly placeholder="Generated conversation data will appear here..."></textarea>
+        </div>
+        <div id="status">Status: Idle</div>
+
+    </div>
+
+    <script>
+        // Set workerSrc for pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const apiKeyInput = document.getElementById('apiKey');
+        const targetPairsInput = document.getElementById('targetPairsInput');
+        const modelSelect = document.getElementById('modelSelect');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const outputTextArea = document.getElementById('output');
+        const downloadButton = document.getElementById('downloadButton');
+        const statusDiv = document.getElementById('status');
+
+        // State Variables
+        let pdfFiles = [];
+        let shareGPTData = [];
+        let isProcessing = false;
+        let stopRequested = false;
+        let currentPairs = 0;
+        let targetPairs = 0;
+        let lastSuccessfulContext = "";
+        const MAX_FILES = 5;
+        const PAGES_TO_SKIP_START = 20;
+        const PAGES_TO_SKIP_END = 20;
+
+        // --- File Handling ---
+        function handleFiles(files) { const newlySelected = Array.from(files).filter(file => file.type === 'application/pdf'); if (pdfFiles.length + newlySelected.length > MAX_FILES) { updateStatus(`Error: Cannot select more than ${MAX_FILES} PDF files.`); return; } newlySelected.forEach(newFile => { if (!pdfFiles.some(existingFile => existingFile.name === newFile.name)) { pdfFiles.push(newFile); } }); renderFileList(); outputTextArea.value = ''; shareGPTData = []; currentPairs = 0; updateStatus(`Ready to process ${pdfFiles.length} file(s).`); updateButtonStates(); }
+        function renderFileList() { fileList.innerHTML = ''; pdfFiles.forEach((file, index) => { const li = document.createElement('li'); const fileNameSpan = document.createElement('span'); fileNameSpan.textContent = `${index + 1}. ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`; li.appendChild(fileNameSpan); const removeBtn = document.createElement('button'); removeBtn.textContent = 'Remove'; removeBtn.onclick = (e) => { e.stopPropagation(); pdfFiles.splice(index, 1); renderFileList(); outputTextArea.value = ''; shareGPTData = []; currentPairs = 0; updateStatus(`Removed file. Ready to process ${pdfFiles.length} file(s).`); updateButtonStates(); }; li.appendChild(removeBtn); fileList.appendChild(li); }); }
+        dropZone.addEventListener('dragover', (event) => { event.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (event) => { event.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(event.dataTransfer.files); });
+        fileInput.addEventListener('change', (event) => { handleFiles(event.target.files); fileInput.value = ''; });
+        // NOTE: The onclick for dropZone is now handled directly in the HTML.
+
+        // --- Status Update ---
+        function updateStatus(message, isWarning = false) {
+             console[isWarning ? 'warn' : 'log']("Status:", message);
+             statusDiv.textContent = `Status: ${message}`;
+             statusDiv.style.color = isWarning ? '#ffcc80' : '#bdbdbd';
+        }
+
+        // --- Download ---
+        function triggerDownload() {
+            if (shareGPTData.length === 0) {
+                // Don't show error status if called automatically when empty (e.g., error before generation)
+                // updateStatus("Nothing to download.");
+                console.warn("triggerDownload called with no data.");
+                return false;
+            }
+            try {
+                const jsonString = JSON.stringify(shareGPTData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                 const modelNameSanitized = modelSelect.value.replace(/[^a-z0-9_-]/gi, '_');
+                const filename = `sharegpt_dataset_${currentPairs}_pairs_${modelNameSanitized}.json`;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                // Update status only if manually triggered? Or always? Let's keep it for auto-download too.
+                updateStatus(`JSON file download initiated (${currentPairs} pairs) as ${filename}.`);
+                return true;
+            } catch (error) {
+                console.error("Error creating download file:", error);
+                updateStatus("Error creating download file.");
+                return false;
+            }
+        }
+        downloadButton.addEventListener('click', triggerDownload); // Keep manual trigger
+
+        // --- API Call ---
+        async function callOpenRouterAPI(apiKey, context, conversationHistory = [], numTurns = 20, startSpeaker = 'human') {
+            const selectedModel = modelSelect.value;
+            if (!selectedModel) {
+                 console.error("No model selected in the dropdown.");
+                 updateStatus("Error: No model selected. Please choose a model from the list.", true);
+                 return { error: 'config_error', message: 'No model selected.' };
+            }
+
+            const baseURL = "https://openrouter.ai/api/v1";
+            const numPairsRequested = numTurns / 2;
+
+            const headers = {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            };
+
+            const turnInstructions = [];
+            let currentSpeaker = startSpeaker;
+            for (let i = 0; i < numTurns; i++) {
+                turnInstructions.push(`{"from": "${currentSpeaker}", "value": "..."}`);
+                currentSpeaker = (currentSpeaker === 'human' ? 'gpt' : 'human');
+            }
+
+             const systemPrompt = `You are a skilled writer assistant generating highly detailed and immersive conversational data in ShareGPT format, based *only* on the provided context.
+Context: """${context}"""
+
+Your task is to generate a sequence of exactly ${numTurns} conversational turns, simulating a scene.
+The first turn MUST be from '${startSpeaker}'. Subsequent turns MUST strictly alternate between 'human' and 'gpt'.
+
+**Output Format:**
+Format the output *strictly* as a single JSON array containing these ${numTurns} turn objects. Do NOT include any text before or after the array.
+Example array structure: [ ${turnInstructions.slice(0, 2).join(', ')}${numTurns > 2 ? ', ...' : ''} ]
+
+**Content Requirements for each "value" string:**
+Your goal is to create rich, narrative-like turns within the ShareGPT format. Go beyond simple dialogue or basic actions. All of the following MUST be present in each "value" string.
+1.  **Detailed Actions/Non-Verbals:** Describe physical movements, gestures, facial expressions, and interactions with the environment in detail using asterisks only (*He hesitated, his hand hovering over the dossier before withdrawing it, a flicker of uncertainty crossing his face*). Describe *how* actions are performed.
+2.  **Internal State (Thoughts/Feelings/Sensations):** Include internal monologue, unspoken feelings, or physical sensations within asterisks only where appropriate to add depth (*A shiver traced its way down my spine despite the warmth of the room; his words felt like a veiled threat*).
+3.  **Atmosphere and Setting Integration:** Weave in details reflecting the mood, setting, and events from the Context. Let the environment influence the characters' actions and thoughts.
+4.  **Dialogue:** Enclose spoken dialogue in double quotes ("..."). Ensure it sounds natural for the character and situation described in the Context. Use standard JSON escaping (e.g., \\") for any double quotes *within* the dialogue itself.
+5.  **Elaboration:** Make each turn elaborate and descriptive, painting a vivid picture for the reader. Aim for the level of detail found in narrative prose, adapted to this format.
+
+**Crucial Constraints:**
+- Base the content *solely* on the provided Context and any preceding turns in the current generation sequence.
+- Adhere *strictly* to the JSON array format containing exactly ${numTurns} alternating turn objects.
+- Ensure the entire response body is *only* the JSON array.`;
+
+            const messages = [
+                { role: "system", content: systemPrompt }
+            ];
+            messages.push({ role: "user", content: `Generate the JSON array containing the next ${numTurns} turns, starting with '${startSpeaker}', based strictly on the provided context.` });
+
+            const targetDisplay = targetPairs > 0 ? `/${targetPairs}` : '';
+            const statusPrefix = `Generating batch with ${selectedModel} (${numPairsRequested} pairs, current total: ${currentPairs}${targetDisplay})...`;
+            updateStatus(statusPrefix);
+
+            try {
+                const response = await fetch(`${baseURL}/chat/completions`, {
+                    method: "POST", headers: headers,
+                    body: JSON.stringify({ model: selectedModel, messages: messages, /* max_tokens, temperature */ }),
+                });
+                if (!response.ok) { const errorBody = await response.text(); let detail = errorBody; try { detail = JSON.parse(errorBody).error?.message || errorBody; } catch (e) {/* ignore */ } throw new Error(`API Error using ${selectedModel}: ${response.status} ${response.statusText} - ${detail}`); }
+
+                const completion = await response.json();
+                if (!completion.choices || !completion.choices[0]?.message?.content) { throw new Error(`API Error using ${selectedModel}: Invalid response structure from OpenRouter.`); }
+                const rawContent = completion.choices[0].message.content.trim();
+                updateStatus(`Received batch response from ${selectedModel}. Parsing & Validating...`);
+
+                let parsedTurns = null;
+                try {
+                    const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+                    let jsonString = jsonMatch ? jsonMatch[1].trim() : rawContent;
+
+                    const firstBracket = jsonString.indexOf('[');
+                    const lastBracket = jsonString.lastIndexOf(']');
+                    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket >= firstBracket) {
+                        jsonString = jsonString.substring(firstBracket, lastBracket + 1);
+                    }
+
+                    parsedTurns = JSON.parse(jsonString);
+
+                    if (!Array.isArray(parsedTurns)) { throw new Error("Response is not a JSON array."); }
+                    if (parsedTurns.length !== numTurns) { throw new Error(`Expected ${numTurns} turns in the array, but received ${parsedTurns.length}.`); }
+
+                    let currentExpectedSpeaker = startSpeaker;
+                    for (let i = 0; i < parsedTurns.length; i++) {
+                        const turn = parsedTurns[i];
+                        if (typeof turn !== 'object' || turn === null || typeof turn.from !== 'string' || typeof turn.value !== 'string' || !['human', 'gpt'].includes(turn.from)) { throw new Error(`Turn ${i + 1} in the array has invalid structure.`); }
+                        if (turn.from !== currentExpectedSpeaker) { throw new Error(`Turn ${i + 1} speaker mismatch: Expected '${currentExpectedSpeaker}', got '${turn.from}'.`); }
+                        currentExpectedSpeaker = (currentExpectedSpeaker === 'human' ? 'gpt' : 'human');
+                    }
+                    return parsedTurns;
+
+                } catch (parseOrValidationError) {
+                    console.error(`Failed to parse/validate batch response from ${selectedModel}: ${parseOrValidationError.message}`, rawContent);
+                    return { error: 'parse_validation_error', raw: rawContent, message: parseOrValidationError.message };
+                }
+
+            } catch (error) {
+                console.error(`Error calling OpenRouter API with ${selectedModel}:`, error);
+                updateStatus(`Error: ${error.message}`);
+                return { error: 'api_error', message: error.message };
+            }
+        }
+
+
+        // --- PDF Processing & Generation Logic ---
+        async function processPDFs(apiKey) {
+            let fileProcessingErrorOccurred = false;
+
+            for (let fileIndex = 0; fileIndex < pdfFiles.length; fileIndex++) {
+                // ***** Check stop condition BEFORE processing file *****
+                if (!isProcessing) break;
+                // We don't check targetPairs here, let the inner loop handle reaching the target
+
+                const file = pdfFiles[fileIndex];
+                updateStatus(`Loading PDF ${fileIndex + 1}/${pdfFiles.length}: ${file.name}...`);
+                let pdfDoc;
+                const objectUrl = URL.createObjectURL(file);
+
+                try {
+                    const loadingTask = pdfjsLib.getDocument(objectUrl);
+                    pdfDoc = await loadingTask.promise;
+                    updateStatus(`Loaded ${file.name} (${pdfDoc.numPages} pages). Extracting text...`);
+                    const startPage = PAGES_TO_SKIP_START + 1;
+                    const endPage = pdfDoc.numPages - PAGES_TO_SKIP_END;
+                    if (startPage > endPage) { updateStatus(`Skipping ${file.name}: Not enough pages after skipping.`); console.log(`Skipping ${file.name}: Only ${pdfDoc.numPages} pages, need more than ${PAGES_TO_SKIP_START + PAGES_TO_SKIP_END}.`); continue; }
+
+                    for (let pageNum = startPage; pageNum <= endPage; pageNum++) {
+                        // ***** Check stop condition BEFORE processing page *****
+                        if (!isProcessing) break;
+
+                        const targetDisplay = targetPairs > 0 ? `/${targetPairs}` : '';
+                        updateStatus(`File ${fileIndex + 1}, Page ${pageNum}/${endPage}. Preparing batch (Total pairs: ${currentPairs}${targetDisplay})...`);
+
+                        try {
+                            const page = await pdfDoc.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ').trim().replace(/\s+/g, ' ');
+                            if (!pageText) { updateStatus(`Skipping File ${fileIndex + 1}, Page ${pageNum}: No text content.`); continue; }
+                            const MAX_CONTEXT_LENGTH = 3000;
+                            const context = pageText.length > MAX_CONTEXT_LENGTH ? pageText.substring(0, MAX_CONTEXT_LENGTH) + "..." : pageText;
+                            lastSuccessfulContext = context;
+
+                            const generatedTurns = await callOpenRouterAPI(apiKey, context, []);
+
+                            if (generatedTurns && generatedTurns.error) {
+                                if (generatedTurns.error === 'config_error' || generatedTurns.error === 'api_error') {
+                                     updateStatus(`Processing Error: ${generatedTurns.message}. Stopping.`, true);
+                                     fileProcessingErrorOccurred = true;
+                                     isProcessing = false; // Signal stop
+                                     break; // Stop processing this file
+                                }
+                                // For parse errors, just log and skip the chunk
+                                updateStatus(`File ${fileIndex + 1}, Page ${pageNum}: Error processing batch (${generatedTurns.error}): ${generatedTurns.message}. Skipping chunk.`);
+                                console.error(`Batch Error Details:`, generatedTurns);
+                                continue;
+                            }
+
+
+                            if (!Array.isArray(generatedTurns) || generatedTurns.length === 0) {
+                                updateStatus(`File ${fileIndex + 1}, Page ${pageNum}: Invalid or empty batch data received. Skipping chunk.`);
+                                console.error(`Invalid Batch Data:`, generatedTurns);
+                                continue;
+                            }
+
+                            updateStatus(`File ${fileIndex + 1}, Page ${pageNum}: Formatting ${generatedTurns.length / 2} pairs from batch...`);
+                            let targetReachedInBatch = false;
+
+                            for (let i = 0; i < generatedTurns.length; i += 2) {
+                                if (i + 1 < generatedTurns.length) {
+                                    const humanTurn = generatedTurns[i];
+                                    const gptTurn = generatedTurns[i + 1];
+
+                                    if (humanTurn.from === 'human' && gptTurn.from === 'gpt') {
+                                        const conversationPairObject = { conversations: [humanTurn, gptTurn] };
+                                        shareGPTData.push(conversationPairObject);
+                                        currentPairs++;
+
+                                        // ***** THE CRITICAL CHECK *****
+                                        if (targetPairs > 0 && currentPairs >= targetPairs) {
+                                            // Status message will be updated later in startButton handler
+                                            isProcessing = false; // Signal stop
+                                            targetReachedInBatch = true;
+                                            break; // Exit the inner loop processing this batch
+                                        }
+                                    } else {
+                                        console.warn(`File ${fileIndex + 1}, Page ${pageNum}: Skipping unexpected turn sequence at index ${i} in batch. Expected human->gpt. Got ${humanTurn.from}->${gptTurn.from}.`);
+                                    }
+                                } else {
+                                    console.warn(`File ${fileIndex + 1}, Page ${pageNum}: Odd number of turns (${generatedTurns.length}) received in batch. Ignoring last turn at index ${i}.`);
+                                }
+                            }
+
+                            updateOutput(); // Update text area after processing the batch
+
+                            if (targetReachedInBatch) break; // Exit page loop if target reached
+
+                            await new Promise(resolve => setTimeout(resolve, 500)); // Delay
+
+                        } catch (pageError) { console.error(`Error processing page ${pageNum}:`, pageError); updateStatus(`Error processing Page ${pageNum}: ${pageError.message}. Skipping.`); }
+
+                        // Check stop condition again after processing a page/batch
+                        if (!isProcessing) break;
+                        await new Promise(resolve => setTimeout(resolve, 0)); // Yield
+
+                    } // End page loop
+
+                } catch (pdfLoadError) { console.error(`Error loading PDF ${file.name}:`, pdfLoadError); updateStatus(`Error loading PDF ${file.name}: ${pdfLoadError.message}. Skipping.`); fileProcessingErrorOccurred = true; }
+                finally {
+                    if (pdfDoc?.destroy) { try { await pdfDoc.destroy(); } catch (e) { console.error(`Error destroying PDF:`, e); } }
+                    try { URL.revokeObjectURL(objectUrl); } catch (e) { console.error(`Error revoking URL:`, e); }
+                }
+                // Check stop condition after processing a file
+                if (fileProcessingErrorOccurred || !isProcessing) {
+                    if (fileProcessingErrorOccurred && isProcessing) { // Log only if error caused stop
+                         updateStatus("Stopping subsequent file processing due to critical error.");
+                    }
+                    break; // Exit file loop
+                }
+            } // End file loop
+            return !fileProcessingErrorOccurred; // Return true if finished without critical errors causing a stop
+        } // End processPDFs
+
+
+        function updateOutput() {
+            try {
+                outputTextArea.value = JSON.stringify(shareGPTData, null, 2);
+                outputTextArea.scrollTop = outputTextArea.scrollHeight;
+                updateButtonStates(); // Update buttons based on data presence
+            } catch (e) {
+                console.error("Error updating output text area:", e);
+                outputTextArea.value = "Error displaying JSON data. See console.";
+            }
+        }
+
+
+        // --- Control Button States ---
+        function updateButtonStates() {
+            const hasData = shareGPTData.length > 0;
+
+            startButton.disabled = isProcessing;
+            stopButton.disabled = !isProcessing;
+
+            apiKeyInput.disabled = isProcessing;
+            targetPairsInput.disabled = isProcessing;
+            modelSelect.disabled = isProcessing;
+            fileInput.disabled = isProcessing;
+            document.querySelector('.select-pdf-button-container button').disabled = isProcessing;
+
+            // Disable drop zone interaction while processing
+            // We keep the pointer-events style for visual cue and prevention
+            dropZone.style.pointerEvents = isProcessing ? 'none' : 'auto';
+            // Explicitly disable clicking via JS (though pointer-events should cover it)
+            dropZone.onclick = isProcessing ? null : () => document.getElementById('fileInput').click();
+            // Also visually indicate disabled state on dropzone (optional)
+            dropZone.style.opacity = isProcessing ? 0.6 : 1;
+            dropZone.style.cursor = isProcessing ? 'not-allowed' : 'pointer';
+
+
+            fileList.querySelectorAll('button').forEach(btn => btn.disabled = isProcessing);
+
+            // Download button is enabled if NOT processing AND has data
+            downloadButton.disabled = isProcessing || !hasData;
+        }
+
+
+        // --- Start Button Logic (MODIFIED) ---
+        startButton.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim(); if (!apiKey) { updateStatus("Error: API Key is required.", true); return; } if (pdfFiles.length === 0) { updateStatus("Error: Please select at least one PDF file.", true); return; }
+            if (!modelSelect.value) { updateStatus("Error: Please select a model.", true); return; }
+
+            targetPairs = parseInt(targetPairsInput.value, 10) || 0; if (targetPairs < 0) targetPairs = 0; targetPairsInput.value = targetPairs;
+
+            isProcessing = true;
+            stopRequested = false;
+            currentPairs = 0; // Reset counter
+            shareGPTData = []; // Clear previous data
+            outputTextArea.value = '';
+            lastSuccessfulContext = "";
+
+            updateButtonStates(); // Disable controls
+
+            updateStatus(`Starting processing with ${modelSelect.options[modelSelect.selectedIndex].text}... Target: ${targetPairs > 0 ? targetPairs : 'unlimited'} pairs.`);
+            let processingSuccess = false;
+            let targetReached = false; // Flag to track if target was the reason for stopping
+
+            try {
+                processingSuccess = await processPDFs(apiKey); // Run the core logic
+                // Check if the process stopped because the target was reached
+                targetReached = (!stopRequested && targetPairs > 0 && currentPairs >= targetPairs);
+
+                // Determine Final Status Message AFTER processing finishes
+                if (stopRequested) {
+                    updateStatus(`Processing stopped by user (${currentPairs} pairs generated).`);
+                } else if (targetReached) {
+                    updateStatus(`Processing finished: Target of ${targetPairs} pairs reached. Auto-downloading...`);
+                    // ***** CALL DOWNLOAD AUTOMATICALLY *****
+                    triggerDownload();
+                } else if (processingSuccess) {
+                    updateStatus(`Processing finished naturally (${currentPairs} pairs generated).`);
+                    // Optionally trigger download here too if desired, e.g.:
+                    // if (shareGPTData.length > 0) triggerDownload();
+                } else {
+                    // This implies !processingSuccess, meaning an error likely occurred and stopped processing
+                    // Status should have been set within processPDFs for API/Config errors
+                    if (!statusDiv.textContent.includes("Error") && !statusDiv.textContent.includes("Stopping")) {
+                         updateStatus(`Processing stopped unexpectedly (${currentPairs} pairs generated). Check console.`, true);
+                     }
+                }
+
+            } catch (error) {
+                 // Catch unexpected errors during the startButton flow itself
+                 updateStatus(`Processing stopped due to UNEXPECTED critical error: ${error.message}`, true);
+                 console.error("Unexpected error in startButton handler:", error);
+
+            } finally {
+                // Final cleanup happens regardless of how processing ended
+                isProcessing = false; // Ensure state reflects stop
+                stopRequested = false; // Reset stop request flag
+                updateButtonStates(); // Re-enable controls based on final state
+            }
+        });
+
+        // --- Stop Button Logic ---
+        stopButton.addEventListener('click', () => {
+            if (!isProcessing) return;
+            stopRequested = true;
+            isProcessing = false; // Signal loops to stop
+            updateStatus("Stop requested... Finishing current operations and stopping.");
+            // updateButtonStates() will be called in the finally block of startButton handler
+        });
+
+        // --- Initial State ---
+        updateStatus("Idle. Select PDF files, enter API key, choose model, and set target pairs.");
+        updateButtonStates(); // Ensure initial state is correct
+
+    </script>
+</body>
+
+</html>
